@@ -1,5 +1,22 @@
 package Assignment_4;
 
+/**
+ * Created by ciunas on 27/10/16.
+ */
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+
 // Fig. 18.9: TicTacToeClient.java
 // Client that let a user play Tic-Tac-Toe with another across a network.
 
@@ -40,7 +57,13 @@ public class TicTacToeClient extends JApplet implements Runnable {
     // Set up user-interface and board
 
     public void init() {
-
+        FileHandler handler = null;
+        try {
+            handler = new FileHandler("/home/ciunas/git/finalYear-GMIT-Coding/loggerFile", true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        clientLogger.addHandler(handler);
         Container container = getContentPane();
 
         // set up JTextArea to display messages to user
@@ -63,18 +86,19 @@ public class TicTacToeClient extends JApplet implements Runnable {
         btnReset.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 try {
-                    output.writeInt(Character.getNumericValue(myMark));
+                    output.writeInt(Character.getNumericValue(controlMark));
                     displayMessage("Game Reset.\n");
                     displayMessage("Player 'X'  goes first..\n");
                     reset();
-                    controlMark = 'X';
+                    myMark = 'X';
                     myTurn = true;
                     clientLogger.warning("Logger Output");
                     System.out.println("My mark: "  + myMark);
-                    idField.setText("You are player \"" + controlMark + "\"");
+                    idField.setText("You are player \"" + myMark + "\"");
 
 
                 } catch (IOException e) {
+                    clientLogger.warning("Client error" +  " IOExcepton"+ e);
                     e.printStackTrace();
                 }
 
@@ -84,15 +108,21 @@ public class TicTacToeClient extends JApplet implements Runnable {
 
         lblPlayerxPlayero = new JLabel("You=0     Opponent=0");
         panel3.add(lblPlayerxPlayero);
-
         btnQuit = new JButton("Quit");
+        panel3.add(btnQuit);
         btnQuit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                try {
+                    output.writeInt(Character.getNumericValue(controlMark) + 1);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                clientLogger.warning("Client " + myMark +  " Exiting" );
                 System.exit(0);
             }
         });
 
-        panel3.add(btnQuit);
+
 
 
         // set up panel for squares in board
@@ -147,12 +177,14 @@ public class TicTacToeClient extends JApplet implements Runnable {
 
         // catch problems setting up connection and streams
         catch (IOException ioException) {
+            clientLogger.warning("Client  Stream error" +  " IOExcepton"+ ioException);
             ioException.printStackTrace();
         }
 
         // create and start output thread
         Thread outputThread = new Thread(this);
         outputThread.start();
+        clientLogger.warning("Thread Started for Client:  "  );
 
     } // end method start
 
@@ -195,14 +227,14 @@ public class TicTacToeClient extends JApplet implements Runnable {
         // valid move occurred
         if (message.equals("Valid move.")) {
             displayMessage("Valid move, please wait.\n");
-            setMark(currentSquare, controlMark);
+            setMark(currentSquare, myMark);
         }
         // valid move occurred and player wins
         else if (message.equals("Valid move. YouWin")) {
             displayMessage("You win.\nPress Reset to start another game.\n");
-            setMark(currentSquare, controlMark);
+            setMark(currentSquare, myMark);
             myTurn = false;
-            if (myMark == 'X') {
+            if (controlMark == 'X') {
                 playerXscore++;
                 lblPlayerxPlayero.setText("You = " + playerXscore + "   Opponent = " + playerOscore);
             } else {
@@ -222,7 +254,7 @@ public class TicTacToeClient extends JApplet implements Runnable {
 
 
             displayMessage("Draw Game.\nPress Reset to start another game.\n");
-            setMark(currentSquare, controlMark);
+            setMark(currentSquare, myMark);
             myTurn = false;
             btnReset.setEnabled(true);
         }
@@ -234,7 +266,7 @@ public class TicTacToeClient extends JApplet implements Runnable {
                 int column = location % 3;
 
                 setMark(board[row][column],
-                        (controlMark == X_MARK ? O_MARK : X_MARK));
+                        (myMark == X_MARK ? O_MARK : X_MARK));
                 displayMessage("Draw Game.\nPress Reset to start another game.\n");
                 myTurn = false;
             } // process problems communicating with server
@@ -252,7 +284,7 @@ public class TicTacToeClient extends JApplet implements Runnable {
                 int column = location % 3;
 
                 setMark(board[row][column],
-                        (controlMark == X_MARK ? O_MARK : X_MARK));
+                        (myMark == X_MARK ? O_MARK : X_MARK));
                 displayMessage("Opponent moved. Your turn.\n");
                 myTurn = true;
 
@@ -270,10 +302,10 @@ public class TicTacToeClient extends JApplet implements Runnable {
                 int column = location % 3;
 
                 setMark(board[row][column],
-                        (controlMark == X_MARK ? O_MARK : X_MARK));
-                displayMessage("You loose.\nPress Reset to start another game.\n");
+                        (myMark == X_MARK ? O_MARK : X_MARK));
+                displayMessage("You lose.\nPress Reset to start another game.\n");
                 myTurn = false;
-                if (myMark == 'X') {
+                if (controlMark == 'X') {
                     playerOscore++;
                     lblPlayerxPlayero.setText("You = " + playerXscore + "   Opponent = " + playerOscore);
                 } else {
@@ -288,7 +320,7 @@ public class TicTacToeClient extends JApplet implements Runnable {
             btnReset.setEnabled(true);
         } // end else if
         else if (message.equals("Reset")) {
-            controlMark = 'O';
+            myMark = 'O';
             System.out.println("Recieved Reset message");
             displayMessage("Game Reset.\n");
             displayMessage("Player 'X'  goes first..\n");
@@ -296,7 +328,11 @@ public class TicTacToeClient extends JApplet implements Runnable {
             myTurn = false;
             System.out.println("O working");
 
-        } else
+        }     // quit
+        else if (message.equals("quit")) {
+            displayMessage("Other player Quit.\n");
+            System.exit(0);
+        }else
             displayMessage(message + "\n");
     } // end method processMessage
 
@@ -310,7 +346,7 @@ public class TicTacToeClient extends JApplet implements Runnable {
             }
         }
         btnReset.setEnabled(false);
-        idField.setText("You are player \"" + controlMark + "\"");
+        idField.setText("You are player \"" + myMark + "\"");
     }
 
 

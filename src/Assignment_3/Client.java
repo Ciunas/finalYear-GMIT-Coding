@@ -5,6 +5,8 @@ import java.io.*;
 import java.net.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.*;
+import java.util.List;
 import javax.swing.*;
 
 public class Client extends JFrame {
@@ -63,17 +65,28 @@ public class Client extends JFrame {
                         BorderLayout.CENTER);
                 setSize(300, 150);
                 setVisible(true);
-                runClient th = new runClient();
-                new Thread(th).start();
+                startClient();
+//                runClient th = new runClient();
+//                new Thread(th).start();
             }
         });
     } // end Client constructor
 
-    // connect to server and process messages from server
-    // set up and run server
-    public class runClient implements Runnable {
-        // set up server to receive connections; process connections
-        public void run() {
+
+    //Start swingworker to run main thread.
+    public void startClient() {
+        (new startClient()).execute();
+    }
+
+    //Method for reversing a line of text
+    class startClient extends SwingWorker<Void, String> {
+        @Override
+        protected void process(List<String> list) {
+
+        }
+
+        @Override
+        public Void doInBackground() {
             try {
                 displayMessage("Attempting connection\n");
                 // create Socket to make connection to server
@@ -126,9 +139,10 @@ public class Client extends JFrame {
                 }
                 //closeConnection(); // Step 4: Close connection
             }
+            return null;
         }
-    } // end method runClient
 
+    }
 
     // send message to client
     private void sendData(String message) {
@@ -151,6 +165,7 @@ public class Client extends JFrame {
                 }  // end inner class
         ); // end call to SwingUtilities.invokeLater
     }
+
 
     // utility method called from other threads to manipulate
     // displayArea in the event-dispatch thread

@@ -6,6 +6,8 @@ import java.awt.*;
 import java.net.*;
 import java.io.*;
 import java.util.Arrays;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 import java.util.logging.Logger;
 import javax.swing.*;
 
@@ -24,8 +26,11 @@ public class TicTacToeServer extends JFrame {
     private static Logger serverLogger =
             Logger.getLogger(TicTacToeServer.class.getName());
 
+
     //Main call at the start
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
+        FileHandler handler = new FileHandler("/home/ciunas/git/finalYear-GMIT-Coding/loggerFile", true);
+        serverLogger.addHandler(handler);
         TicTacToeServer application = new TicTacToeServer();
         application.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         application.execute();
@@ -139,6 +144,7 @@ public class TicTacToeServer extends JFrame {
                 serverLogger.warning("returning winner: " + str);
             }else if (draw ==  true){
                 str = "draw";
+                serverLogger.warning("returning draw: " + str);
             }
             // let new current player know that move occurred
             players[currentPlayer].otherPlayerMoved(location, str);
@@ -228,6 +234,7 @@ public class TicTacToeServer extends JFrame {
                 input = new DataInputStream(connection.getInputStream());
                 output = new DataOutputStream(connection.getOutputStream());
             } catch (IOException ioException) {
+                serverLogger.warning("IOExcepton"+ ioException);
                 ioException.printStackTrace();
                 System.exit(1);
             }
@@ -243,6 +250,7 @@ public class TicTacToeServer extends JFrame {
                     output.writeInt(location);
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
+                    serverLogger.warning("won error" +  "IOExcepton"+ ioException);
                 }
             } else if (update.equals("reset")) {
                 try {
@@ -254,12 +262,21 @@ public class TicTacToeServer extends JFrame {
                     sb2.setLength(0);
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
+                    serverLogger.warning("Rest error" +  "IOExcepton"+ ioException);
                 }
-            } else if (update.equals("draw")) {
+            } else if (update.equals("quit")) {
+                try {
+                    output.writeUTF("quit");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            else if (update.equals("draw")) {
                 try {
                     output.writeUTF("Opponent moved Draw Game");
                     output.writeInt(location);
                 } catch (IOException ioException) {
+                    serverLogger.warning("Draw game error" +  "IOExcepton"+ ioException);
                     ioException.printStackTrace();
                 }
             } else {
@@ -320,7 +337,19 @@ public class TicTacToeServer extends JFrame {
                             players[currentPlayer].otherPlayerMoved(location, "reset");
                         }
                         currentPlayer = 0;
-                    } else if (location == 24) {          //24 numeric value of character 'O'
+                    }
+                    else if (location == 34) {
+                        System.out.println("Quit X");
+                        // while not current player, must wait for turn
+                        if (playerNumber != currentPlayer) {
+                            players[currentPlayer].otherPlayerMoved(location, "quit");
+                        } else {
+                            currentPlayer = 1;
+                            players[currentPlayer].otherPlayerMoved(location, "quit");
+                        }
+                        currentPlayer = 0;
+                        }
+                    else if (location == 24) {          //24 numeric value of character 'O'
                         System.out.println("Character 'O'");
                         // while not current player, must wait for turn
                         if (playerNumber != currentPlayer) {
@@ -328,6 +357,16 @@ public class TicTacToeServer extends JFrame {
                         } else {
                             currentPlayer = 0;
                             players[currentPlayer].otherPlayerMoved(location, "reset");
+                        }
+                        currentPlayer = 1;
+                    }   else if (location == 25) {
+                        System.out.println("Quit 'O'");
+                        // while not current player, must wait for turn
+                        if (playerNumber != currentPlayer) {
+                            players[currentPlayer].otherPlayerMoved(location, "quit");
+                        } else {
+                            currentPlayer = 0;
+                            players[currentPlayer].otherPlayerMoved(location, "quit");
                         }
                         currentPlayer = 1;
                     } else {
@@ -351,6 +390,7 @@ public class TicTacToeServer extends JFrame {
 
             // process problems communicating with client
             catch (IOException ioException) {
+                serverLogger.warning("Exiting erro" +  " IOExcepton"+ ioException);
                 ioException.printStackTrace();
                 System.exit(1);
             }

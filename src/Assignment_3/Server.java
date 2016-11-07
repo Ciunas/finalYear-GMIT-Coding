@@ -19,12 +19,14 @@ public class Server extends JFrame {
     private int counter = 1;
 
     public static void main(String args[]) throws IOException {
+
         EventQueue.invokeLater(new Runnable() {
                                        public void run() {
         Server application = new Server();
         application.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                                        }
         });
+
     }
 
 
