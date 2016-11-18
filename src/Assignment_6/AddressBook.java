@@ -56,7 +56,7 @@ public class AddressBook extends JFrame {
       deleteAction.setEnabled( false );  // disabled by default
       searchAction = new SearchAction();
       exitAction = new ExitAction();
-      
+
       // add actions to tool bar
       toolBar.add( newAction );
       toolBar.add( saveAction );
@@ -161,7 +161,7 @@ public class AddressBook extends JFrame {
       {
          putValue( NAME, "New" );
          putValue( SMALL_ICON, new ImageIcon(
-            getClass().getResource( "/images/New24.png" ) ) );
+            getClass().getResource( "images/New24.png" ) ) );
          putValue( SHORT_DESCRIPTION, "New" );
          putValue( LONG_DESCRIPTION, 
             "Add a new address book entry" );
@@ -403,3 +403,6 @@ public class AddressBook extends JFrame {
  * consequential damages in connection with, or arising out of, the       *
  * furnishing, performance, or use of these programs.                     *
  *************************************************************************/
+
+
+//line 59 in CloudscapeDtaAccess need to come up with own version.
